@@ -89,6 +89,7 @@ class CefBrowserHostCToCpp : public CefCToCppRefCounted<CefBrowserHostCToCpp,
   bool IsWindowRenderingDisabled() OVERRIDE;
   void WasResized() OVERRIDE;
   void WasHidden(bool hidden) OVERRIDE;
+  void SetRenderingBlocked(bool blocked) OVERRIDE;
   void NotifyScreenInfoChanged() OVERRIDE;
   void Invalidate(PaintElementType type) OVERRIDE;
   void SendExternalBeginFrame() OVERRIDE;
