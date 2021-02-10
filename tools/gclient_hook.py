@@ -33,8 +33,9 @@ cmd = [sys.executable, 'tools/make_version_header.py', 'include/cef_version.h']
 RunAction(cef_dir, cmd)
 
 print("\nPatching build configuration and source files for CEF...")
-cmd = [sys.executable, 'tools/patcher.py']
-RunAction(cef_dir, cmd)
+if not 'CEF_SKIP_PATCHES' in os.environ:
+  cmd = [sys.executable, 'tools/patcher.py']
+  RunAction(cef_dir, cmd)
 
 if platform == 'linux' and 'CEF_INSTALL_SYSROOT' in os.environ:
   for arch in os.environ['CEF_INSTALL_SYSROOT'].split(','):
