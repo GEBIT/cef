@@ -60,7 +60,6 @@ class CefMainArgs : public CefStructBase<CefMainArgsTraits> {
 
   CefMainArgs() : parent() {}
   explicit CefMainArgs(const cef_main_args_t& r) : parent(r) {}
-  explicit CefMainArgs(const CefMainArgs& r) : parent(r) {}
   CefMainArgs(int argc, char** argv) : parent() {
     this->argc = argc;
     this->argv = argv;
