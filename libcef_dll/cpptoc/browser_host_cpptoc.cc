@@ -703,6 +703,18 @@ void CEF_CALLBACK browser_host_was_hidden(struct _cef_browser_host_t* self,
   CefBrowserHostCppToC::Get(self)->WasHidden(hidden ? true : false);
 }
 
+void CEF_CALLBACK browser_host_set_rendering_blocked(
+    struct _cef_browser_host_t *self, int blocked) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return;
+
+  // Execute
+  CefBrowserHostCppToC::Get(self)->SetRenderingBlocked(blocked ? true : false);
+}
+
 void CEF_CALLBACK
 browser_host_notify_screen_info_changed(struct _cef_browser_host_t* self) {
   shutdown_checker::AssertNotShutdown();
@@ -1326,6 +1338,7 @@ CefBrowserHostCppToC::CefBrowserHostCppToC() {
       browser_host_is_window_rendering_disabled;
   GetStruct()->was_resized = browser_host_was_resized;
   GetStruct()->was_hidden = browser_host_was_hidden;
+  GetStruct()->set_rendering_blocked = browser_host_set_rendering_blocked;
   GetStruct()->notify_screen_info_changed =
       browser_host_notify_screen_info_changed;
   GetStruct()->invalidate = browser_host_invalidate;
