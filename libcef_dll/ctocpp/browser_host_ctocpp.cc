@@ -646,6 +646,18 @@ NO_SANITIZE("cfi-icall") void CefBrowserHostCToCpp::WasHidden(bool hidden) {
   _struct->was_hidden(_struct, hidden);
 }
 
+NO_SANITIZE("cfi-icall")
+void CefBrowserHostCToCpp::SetRenderingBlocked(bool blocked) {
+  cef_browser_host_t *_struct = GetStruct();
+  if (CEF_MEMBER_MISSING(_struct, set_rendering_blocked))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  _struct->set_rendering_blocked(_struct, blocked);
+}
+
 NO_SANITIZE("cfi-icall") void CefBrowserHostCToCpp::NotifyScreenInfoChanged() {
   shutdown_checker::AssertNotShutdown();
 

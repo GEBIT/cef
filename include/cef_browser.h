@@ -638,6 +638,12 @@ class CefBrowserHost : public virtual CefBaseRefCounted {
   virtual void WasHidden(bool hidden) = 0;
 
   ///
+  // Allows to disable and re-enable the content rendering pipeline.
+  ///
+  /*--cef()--*/
+  virtual void SetRenderingBlocked(bool blocked) = 0;
+
+  ///
   // Send a notification to the browser that the screen info has changed. The
   // browser will then call CefRenderHandler::GetScreenInfo to update the
   // screen information with the new values. This simulates moving the webview
