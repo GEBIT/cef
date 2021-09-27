@@ -161,6 +161,9 @@ class ChromeBrowserHostImpl : public CefBrowserHostBase {
 
   void DoCloseBrowser(bool force_close);
 
+  // Rendering block implementation
+  void SetRenderingBlocked(bool blocked) override;
+
   // Returns the current tab index for the associated WebContents, or
   // TabStripModel::kNoTab if not found.
   int GetCurrentTabIndex() const;
