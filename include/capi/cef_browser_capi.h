@@ -192,6 +192,12 @@ typedef struct _cef_browser_t {
   ///
   void(CEF_CALLBACK* get_frame_names)(struct _cef_browser_t* self,
                                       cef_string_list_t names);
+
+  ///
+  // Allows to disable and re-enable the content rendering pipeline.
+  ///
+  void(CEF_CALLBACK *set_rendering_blocked)(struct _cef_browser_t *self,
+                                            int blocked);
 } cef_browser_t;
 
 ///
@@ -601,6 +607,12 @@ typedef struct _cef_browser_host_t {
   // hidden. This function is only used when window rendering is disabled.
   ///
   void(CEF_CALLBACK* was_hidden)(struct _cef_browser_host_t* self, int hidden);
+
+  ///
+  // Allows to disable and re-enable the content rendering pipeline.
+  ///
+  void(CEF_CALLBACK *set_rendering_blocked)(struct _cef_browser_host_t *self,
+                                            int blocked);
 
   ///
   // Send a notification to the browser that the screen info has changed. The

@@ -1105,6 +1105,8 @@ static_library("libcef_static") {
       "libcef/browser/native/menu_runner_mac.mm",
       "libcef/browser/osr/browser_platform_delegate_osr_mac.h",
       "libcef/browser/osr/browser_platform_delegate_osr_mac.mm",
+      "libcef/browser/ui_compositor_access_mac.h",
+      "libcef/browser/ui_compositor_access_mac.mm",
       "libcef/browser/views/view_util_mac.mm",
       "libcef/common/util_mac.h",
       "libcef/common/util_mac.mm",
