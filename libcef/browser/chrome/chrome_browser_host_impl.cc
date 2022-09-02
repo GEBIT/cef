@@ -554,3 +554,8 @@ int ChromeBrowserHostImpl::GetCurrentTabIndex() const {
   }
   return TabStripModel::kNoTab;
 }
+
+void ChromeBrowserHostImpl::SetRenderingBlocked(bool blocked) {
+  // Doing nothing; this is just a dummy method to satisfy the CefBrowser interface. 
+  // Blocking rendering is not supported for the chrome impl.
+}
