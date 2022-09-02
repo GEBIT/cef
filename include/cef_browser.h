@@ -637,12 +637,18 @@ class CefBrowserHost : public virtual CefBaseRefCounted {
   virtual void WasHidden(bool hidden) = 0;
 
   ///
-  /// Send a notification to the browser that the screen info has changed. The
-  /// browser will then call CefRenderHandler::GetScreenInfo to update the
-  /// screen information with the new values. This simulates moving the webview
-  /// window from one display to another, or changing the properties of the
-  /// current display. This method is only used when window rendering is
-  /// disabled.
+  // Allows to disable and re-enable the content rendering pipeline.
+  ///
+  /*--cef()--*/
+  virtual void SetRenderingBlocked(bool blocked) = 0;
+
+  ///
+  // Send a notification to the browser that the screen info has changed. The
+  // browser will then call CefRenderHandler::GetScreenInfo to update the
+  // screen information with the new values. This simulates moving the webview
+  // window from one display to another, or changing the properties of the
+  // current display. This method is only used when window rendering is
+  // disabled.
   ///
   /*--cef()--*/
   virtual void NotifyScreenInfoChanged() = 0;
