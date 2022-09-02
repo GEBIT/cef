@@ -1,0 +1,307 @@
+diff --git cc/trees/layer_tree_host.cc cc/trees/layer_tree_host.cc
+index 03e3c41c5e5c..cf5257cf066a 100644
+--- cc/trees/layer_tree_host.cc
++++ cc/trees/layer_tree_host.cc
+@@ -676,6 +676,10 @@ void LayerTreeHost::ApplyPageScaleDeltaFromImplSide(float page_scale_delta) {
+   SetPageScaleFromImplSide(page_scale);
+ }
+ 
++void LayerTreeHost::SetSkipDrawing(bool skip_drawing) {
++  proxy_->SetSkipDrawing(skip_drawing);
++}
++
+ void LayerTreeHost::SetVisible(bool visible) {
+   DCHECK(IsMainThread());
+   if (visible_ == visible)
+diff --git cc/trees/layer_tree_host.h cc/trees/layer_tree_host.h
+index e5e66fa7cc68..cb596039d0a2 100644
+--- cc/trees/layer_tree_host.h
++++ cc/trees/layer_tree_host.h
+@@ -194,6 +194,9 @@ class CC_EXPORT LayerTreeHost : public MutatorHostClient {
+ 
+   // Visibility and LayerTreeFrameSink -------------------------------
+ 
++  // Sets whether the render process should skip drawing results.
++  void SetSkipDrawing(bool skip_drawing);
++
+   // Sets or gets if the LayerTreeHost is visible. When not visible it will:
+   // - Not request a new LayerTreeFrameSink from the client.
+   // - Stop submitting frames to the display compositor.
+diff --git cc/trees/proxy.h cc/trees/proxy.h
+index 5c886bb152f6..1e7dd6cdec75 100644
+--- cc/trees/proxy.h
++++ cc/trees/proxy.h
+@@ -44,6 +44,8 @@ class CC_EXPORT Proxy {
+ 
+   virtual void SetVisible(bool visible) = 0;
+ 
++  virtual void SetSkipDrawing(bool skip_drawing) = 0;
++
+   virtual void SetNeedsAnimate() = 0;
+   virtual void SetNeedsUpdateLayers() = 0;
+   virtual void SetNeedsCommit() = 0;
+diff --git cc/trees/proxy_main.cc cc/trees/proxy_main.cc
+index 0fa28a69c060..1bb8466a3a59 100644
+--- cc/trees/proxy_main.cc
++++ cc/trees/proxy_main.cc
+@@ -170,7 +170,7 @@ void ProxyMain::BeginMainFrame(
+   // When we don't need to produce a CompositorFrame, there's also no need to
+   // commit our updates. We still need to run layout and paint though, as it can
+   // have side effects on page loading behavior.
+-  skip_commit |= frame_args.animate_only;
++  skip_commit |= skip_drawing_ | begin_main_frame_state->begin_frame_args.animate_only;
+ 
+   if (skip_commit) {
+    current_pipeline_stage_ = NO_PIPELINE_STAGE;
+@@ -422,6 +422,13 @@ void ProxyMain::SetVisible(bool visible) {
+                                 base::Unretained(proxy_impl_.get()), visible));
+ }
+ 
++void ProxyMain::SetSkipDrawing(bool skip_drawing) {
++  TRACE_EVENT1("cc", "ProxyMain::SetSkipDrawing", "skip", skip_drawing);
++  skip_drawing_ = skip_drawing;
++  if (!skip_drawing)
++    SetNeedsCommit();
++}
++
+ void ProxyMain::SetNeedsAnimate() {
+   DCHECK(IsMainThread());
+   if (SendCommitRequestToImplThreadIfNeeded(ANIMATE_PIPELINE_STAGE)) {
+diff --git cc/trees/proxy_main.h cc/trees/proxy_main.h
+index d5bc7291989e..1ae0a59cdf8f 100644
+--- cc/trees/proxy_main.h
++++ cc/trees/proxy_main.h
+@@ -77,6 +77,7 @@ class CC_EXPORT ProxyMain : public Proxy {
+   void SetLayerTreeFrameSink(
+       LayerTreeFrameSink* layer_tree_frame_sink) override;
+   void SetVisible(bool visible) override;
++  void SetSkipDrawing(bool skip_drawing) override;
+   void SetNeedsAnimate() override;
+   void SetNeedsUpdateLayers() override;
+   void SetNeedsCommit() override;
+@@ -124,6 +125,8 @@ class CC_EXPORT ProxyMain : public Proxy {
+ 
+   const int layer_tree_host_id_;
+ 
++  bool skip_drawing_ = false;
++
+   // The furthest pipeline stage which has been requested for the next
+   // commit.
+   CommitPipelineStage max_requested_pipeline_stage_;
+diff --git cc/trees/single_thread_proxy.cc cc/trees/single_thread_proxy.cc
+index f2050b823340..55a521925d42 100644
+--- cc/trees/single_thread_proxy.cc
++++ cc/trees/single_thread_proxy.cc
+@@ -116,6 +116,15 @@ void SingleThreadProxy::SetVisible(bool visible) {
+     scheduler_on_impl_thread_->SetVisible(host_impl_->visible());
+ }
+ 
++void SingleThreadProxy::SetSkipDrawing(bool skip_drawing) {
++  TRACE_EVENT1("cc", "SingleThreadProxy::SetSkipDrawing", "skip", skip_drawing);
++  DebugScopedSetImplThread impl(task_runner_provider_);
++
++  skip_drawing_ = skip_drawing;
++  if (!skip_drawing)
++    SetNeedsCommitOnImplThread();
++}
++
+ void SingleThreadProxy::RequestNewLayerTreeFrameSink() {
+   DCHECK(task_runner_provider_->IsMainThread());
+   layer_tree_frame_sink_creation_callback_.Cancel();
+@@ -646,7 +655,7 @@ bool SingleThreadProxy::SupportsImplScrolling() const {
+ 
+ bool SingleThreadProxy::ShouldComposite() const {
+   DCHECK(task_runner_provider_->IsImplThread());
+-  return host_impl_->visible() && host_impl_->CanDraw();
++  return !skip_drawing_ && host_impl_->visible() && host_impl_->CanDraw();
+ }
+ 
+ void SingleThreadProxy::ScheduleRequestNewLayerTreeFrameSink() {
+@@ -804,7 +813,7 @@ void SingleThreadProxy::BeginMainFrame(
+   animate_requested_ = false;
+   update_layers_requested_ = false;
+ 
+-  if (defer_main_frame_update_) {
++  if (skip_drawing_ | defer_main_frame_update_) {
+     TRACE_EVENT_INSTANT0("cc", "EarlyOut_DeferBeginMainFrame",
+                          TRACE_EVENT_SCOPE_THREAD);
+     BeginMainFrameAbortedOnImplThread(
+diff --git cc/trees/single_thread_proxy.h cc/trees/single_thread_proxy.h
+index 8b0960dbd4f2..fd691be46e77 100644
+--- cc/trees/single_thread_proxy.h
++++ cc/trees/single_thread_proxy.h
+@@ -47,6 +47,8 @@ class CC_EXPORT SingleThreadProxy : public Proxy,
+       LayerTreeFrameSink* layer_tree_frame_sink) override;
+   void ReleaseLayerTreeFrameSink() override;
+   void SetVisible(bool visible) override;
++  void SetSkipDrawing(bool skip_drawing) override;
++  bool skip_drawing_ = false;
+   void SetNeedsAnimate() override;
+   void SetNeedsUpdateLayers() override;
+   void SetNeedsCommit() override;
+diff --git content/browser/renderer_host/render_widget_host_impl.cc content/browser/renderer_host/render_widget_host_impl.cc
+index dd1340db422d..56f53d66d503 100644
+--- content/browser/renderer_host/render_widget_host_impl.cc
++++ content/browser/renderer_host/render_widget_host_impl.cc
+@@ -663,6 +663,36 @@ void RenderWidgetHostImpl::SetIsLoading(bool is_loading) {
+     view_->SetIsLoading(is_loading);
+ }
+ 
++void RenderWidgetHostImpl::SetSkipDrawing(bool skip_drawing, base::OnceClosure callback) {
++  TRACE_EVENT1("renderer_host", "RenderWidgetHostImpl::SetSkipDrawing", "skip", skip_drawing);
++  
++  if (blink_widget_)
++    blink_widget_->SetSkipDrawing(skip_drawing);
++
++  // Now wait for a full frame to be rendered, and when that has happened, invoke the callback.
++  if (!skip_drawing && !callback.is_null()) {
++    auto repeatableCallback = base::AdaptCallbackForRepeating(std::move(callback));
++    InsertVisualStateCallback(base::BindOnce(
++      [](base::RepeatingClosure innerCallback, bool success) {
++        TRACE_EVENT0("renderer_host", "RenderWidgetHostImpl::SetSkipDrawing_OnVisualStateCallback");
++        innerCallback.Run();
++      },
++      repeatableCallback)
++    );
++    // It was observed that the above callback is not triggered with 100% certainty (for unknown
++    // reasons), so the safeguard below was added to ensure callback invocation.
++    base::ThreadTaskRunnerHandle::Get()->PostDelayedTask(
++      FROM_HERE,
++      base::BindOnce(
++        [](base::RepeatingClosure innerCallback) {
++          TRACE_EVENT0("renderer_host", "RenderWidgetHostImpl::SetSkipDrawing_OnVisualStateTimeout");
++          innerCallback.Run();
++        },
++        repeatableCallback),
++      base::Milliseconds(100));
++  }
++}
++
+ void RenderWidgetHostImpl::WasHidden() {
+   if (is_hidden_)
+     return;
+diff --git content/browser/renderer_host/render_widget_host_impl.h content/browser/renderer_host/render_widget_host_impl.h
+index fba8cc575912..4313f2c58b49 100644
+--- content/browser/renderer_host/render_widget_host_impl.h
++++ content/browser/renderer_host/render_widget_host_impl.h
+@@ -210,6 +210,7 @@ class CONTENT_EXPORT RenderWidgetHostImpl
+   int GetRoutingID() final;
+   RenderWidgetHostViewBase* GetView() override;
+   bool IsCurrentlyUnresponsive() override;
++  void SetSkipDrawing(bool skip_drawing, base::OnceClosure callback) override;
+   bool SynchronizeVisualProperties() override;
+   void AddKeyPressEventCallback(const KeyPressEventCallback& callback) override;
+   void RemoveKeyPressEventCallback(
+diff --git content/public/browser/render_widget_host.h content/public/browser/render_widget_host.h
+index c011ff127c8b..9f0f6ae9318c 100644
+--- content/public/browser/render_widget_host.h
++++ content/public/browser/render_widget_host.h
+@@ -217,6 +217,9 @@ class CONTENT_EXPORT RenderWidgetHost {
+   // Returns true if the renderer is considered unresponsive.
+   virtual bool IsCurrentlyUnresponsive() = 0;
+ 
++  // Sets whether the render process should skip drawing results on this widget.
++  virtual void SetSkipDrawing(bool skip_drawing, base::OnceClosure callback) = 0;
++
+   // Called to propagate updated visual properties to the renderer. Returns
+   // true if visual properties have changed since last call.
+   virtual bool SynchronizeVisualProperties() = 0;
+diff --git third_party/blink/public/mojom/widget/platform_widget.mojom third_party/blink/public/mojom/widget/platform_widget.mojom
+index 65d99fb731c2..962e0cda02b3 100644
+--- third_party/blink/public/mojom/widget/platform_widget.mojom
++++ third_party/blink/public/mojom/widget/platform_widget.mojom
+@@ -219,6 +219,9 @@ interface Widget {
+   UpdateScreenRects(gfx.mojom.Rect widget_screen_rect,
+                     gfx.mojom.Rect window_screen_rect) => ();
+ 
++  // Tells the widget that it should skip drawing new rendered frames or
++  // resume rendering
++  SetSkipDrawing(bool skip_drawing);
+ 
+   // Informs the widget that it was hidden. This allows it to reduce its
+   // resource utilization, and will cancel any pending
+diff --git third_party/blink/renderer/platform/widget/widget_base.cc third_party/blink/renderer/platform/widget/widget_base.cc
+index 9cd69720a13a..188ae9b383c9 100644
+--- third_party/blink/renderer/platform/widget/widget_base.cc
++++ third_party/blink/renderer/platform/widget/widget_base.cc
+@@ -394,6 +394,11 @@ void WidgetBase::UpdateScreenRects(const gfx::Rect& widget_screen_rect,
+   std::move(callback).Run();
+ }
+ 
++void WidgetBase::SetSkipDrawing(bool skip_drawing) {
++  TRACE_EVENT1("renderer", "WidgetBase::SetSkipDrawing", "skip", skip_drawing);
++  LayerTreeHost()->SetSkipDrawing(skip_drawing);
++}
++
+ void WidgetBase::WasHidden() {
+   // A provisional frame widget will never be hidden since that would require it
+   // to be shown first. A frame must be attached to the frame tree before
+diff --git third_party/blink/renderer/platform/widget/widget_base.h third_party/blink/renderer/platform/widget/widget_base.h
+index 53a539f143f5..4f9c88917d80 100644
+--- third_party/blink/renderer/platform/widget/widget_base.h
++++ third_party/blink/renderer/platform/widget/widget_base.h
+@@ -104,6 +104,7 @@ class PLATFORM_EXPORT WidgetBase : public mojom::blink::Widget,
+   void UpdateScreenRects(const gfx::Rect& widget_screen_rect,
+                          const gfx::Rect& window_screen_rect,
+                          UpdateScreenRectsCallback callback) override;
++  void SetSkipDrawing(bool skip_drawing) override;
+   void WasHidden() override;
+   void WasShown(bool was_evicted,
+                 mojom::blink::RecordContentToVisibleTimeRequestPtr
+diff --git ui/compositor/compositor.cc ui/compositor/compositor.cc
+index 7d4987325536..393c4f53a9b5 100644
+--- ui/compositor/compositor.cc
++++ ui/compositor/compositor.cc
+@@ -479,6 +479,11 @@ void Compositor::SetVisible(bool visible) {
+     display_private_->SetDisplayVisible(visible);
+ }
+ 
++void Compositor::SetSkipDrawing(bool skip_drawing) {
++  TRACE_EVENT1("cc", "Compositor::SetSkipDrawing", "skip", skip_drawing);
++  host_->SetSkipDrawing(skip_drawing);
++}
++
+ bool Compositor::IsVisible() {
+   return host_->IsVisible();
+ }
+diff --git ui/compositor/compositor.h ui/compositor/compositor.h
+index dc011fe48e2a..5827e5a56d69 100644
+--- ui/compositor/compositor.h
++++ ui/compositor/compositor.h
+@@ -232,6 +232,9 @@ class COMPOSITOR_EXPORT Compositor : public cc::LayerTreeHostClient,
+   // call to CreateLayerTreeFrameSink.
+   void SetVisible(bool visible);
+ 
++  // Sets whether the underlying compositor should skip drawing results.
++  void SetSkipDrawing(bool skip_drawing);
++
+   // Gets the visibility of the underlying compositor.
+   bool IsVisible();
+
+diff --git base/functional/callback_helpers.h base/functional/callback_helpers.h
+index 864296839c713..20b3436d5f012 100644
+--- base/functional/callback_helpers.h
++++ base/functional/callback_helpers.h
+@@ -94,6 +94,22 @@ class OnceCallbackHolder final {
+ 
+ }  // namespace internal
+ 
++// Wraps the given OnceCallback into a RepeatingCallback that relays its
++// invocation to the original OnceCallback on the first invocation. The
++// following invocations are just ignored.
++//
++// Note that this deliberately subverts the Once/Repeating paradigm of Callbacks
++// but helps ease the migration from old-style Callbacks. Avoid if possible; use
++// if necessary for migration. TODO(tzik): Remove it. https://crbug.com/730593
++template <typename... Args>
++RepeatingCallback<void(Args...)> AdaptCallbackForRepeating(
++    OnceCallback<void(Args...)> callback) {
++  using Helper = internal::OnceCallbackHolder<Args...>;
++  return base::BindRepeating(
++      &Helper::Run, std::make_unique<Helper>(std::move(callback),
++                                             /*ignore_extra_runs=*/true));
++}
++
+ // Wraps the given OnceCallback and returns two OnceCallbacks with an identical
+ // signature. On first invokation of either returned callbacks, the original
+ // callback is invoked. Invoking the remaining callback results in a crash.
