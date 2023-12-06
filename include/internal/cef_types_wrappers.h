@@ -747,4 +747,14 @@ struct CefMediaSinkDeviceInfoTraits {
 ///
 using CefMediaSinkDeviceInfo = CefStructBase<CefMediaSinkDeviceInfoTraits>;
 
+///
+/// Class representing PIN collection options
+///
+class CefCollectPinOptions : public cef_collect_pin_options_t {
+ public:
+  CefCollectPinOptions() : cef_collect_pin_options_t{} {}
+  CefCollectPinOptions(const cef_collect_pin_options_t& r)
+      : cef_collect_pin_options_t(r) {}
+};
+
 #endif  // CEF_INCLUDE_INTERNAL_CEF_TYPES_WRAPPERS_H_
