@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=4f8f1876fa5ee304f9e4481212df662fa05da02d$
+// $hash=cd2a236ffadd7d04d78dc110e07a88cd28a1d359$
 //
 
 #ifndef CEF_LIBCEF_DLL_CTOCPP_REQUEST_HANDLER_CTOCPP_H_
@@ -61,6 +61,11 @@ class CefRequestHandlerCToCpp
                           const CefString& realm,
                           const CefString& scheme,
                           CefRefPtr<CefAuthCallback> callback) override;
+  bool GetAuthenticatorPinSupported(CefRefPtr<CefBrowser> browser) override;
+  CefRefPtr<CefAuthenticatorResultHandler> GetAuthenticatorPin(
+      CefRefPtr<CefBrowser> browser,
+      const CefCollectPinOptions& options,
+      CefRefPtr<CefAuthenticatorRequestCallback> callback) override;
   bool OnCertificateError(CefRefPtr<CefBrowser> browser,
                           cef_errorcode_t cert_error,
                           const CefString& request_url,

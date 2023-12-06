@@ -13,6 +13,7 @@
 #include "libcef/browser/alloy/alloy_browser_host_impl.h"
 #include "libcef/browser/alloy/alloy_browser_main.h"
 #include "libcef/browser/alloy/alloy_web_contents_view_delegate.h"
+#include "libcef/browser/alloy/dialogs/alloy_authenticator_request_client_delegate.h"
 #include "libcef/browser/browser_context.h"
 #include "libcef/browser/browser_frame.h"
 #include "libcef/browser/browser_info.h"
@@ -1032,6 +1033,13 @@ AlloyContentBrowserClient::CreateLoginDelegate(
   return std::make_unique<net_service::LoginDelegate>(
       auth_info, web_contents, request_id, url,
       std::move(auth_required_callback));
+}
+
+std::unique_ptr<content::AuthenticatorRequestClientDelegate>
+AlloyContentBrowserClient::GetWebAuthenticationRequestDelegate(
+    content::RenderFrameHost* render_frame_host) {
+  return std::make_unique<AlloyAuthenticatorRequestClientDelegate>(
+      render_frame_host);
 }
 
 void AlloyContentBrowserClient::RegisterNonNetworkNavigationURLLoaderFactories(

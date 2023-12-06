@@ -41,6 +41,8 @@
 #include <vector>
 
 #include "include/cef_auth_callback.h"
+#include "include/cef_authenticator_request_callback.h"
+#include "include/cef_authenticator_result_handler.h"
 #include "include/cef_base.h"
 #include "include/cef_browser.h"
 #include "include/cef_callback.h"
@@ -170,6 +172,40 @@ class CefRequestHandler : public virtual CefBaseRefCounted {
                                   const CefString& scheme,
                                   CefRefPtr<CefAuthCallback> callback) {
     return false;
+  }
+
+  ///
+  /// Called on the UI thread when the browser needs Webauthn PIN input from the
+  /// user.
+  /// This is a two-step process: first, an invocation of
+  /// GetAuthenticatorPinSupported is performed to evaluate whether PIN entry is
+  /// even supported by the embedding application. If true, GetAuthenticatorPin
+  /// is invoked in order to retrieve the actual PIN.
+  ///
+  /*--cef()--*/
+  virtual bool GetAuthenticatorPinSupported(CefRefPtr<CefBrowser> browser) {
+    return false;
+  }
+
+  ///
+  /// Called on the UI thread when the browser needs Webauthn PIN input from the
+  /// user.
+  /// This is a two-step process: first, an invocation of
+  /// GetAuthenticatorPinSupported is performed to evaluate whether PIN entry is
+  /// even supported by the embedding application. If PIN input was signaled to
+  /// be supported, a second call to GetAuthenticatorPin will be made, supplying
+  /// options, the callback and expecting that Continue() or Cancel() is
+  /// eventually invoked. If you return a CefAuthenticatorResultHandler in that
+  /// second call, it will be used by CEF to signal the result of the
+  /// authentication procedure back to the embedding application (important for
+  /// example to signal a failure due to timeout).
+  ///
+  /*--cef(optional_param=callback)--*/
+  virtual CefRefPtr<CefAuthenticatorResultHandler> GetAuthenticatorPin(
+      CefRefPtr<CefBrowser> browser,
+      const CefCollectPinOptions& options,
+      CefRefPtr<CefAuthenticatorRequestCallback> callback) {
+    return nullptr;
   }
 
   ///
