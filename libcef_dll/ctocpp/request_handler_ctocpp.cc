@@ -9,11 +9,12 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=19152f67304ceaf2d54f0b8133f317974145d40e$
+// $hash=2dfd2cba04aea02a3269950845e7346991b3e103$
 //
 
 #include "libcef_dll/ctocpp/request_handler_ctocpp.h"
 #include "libcef_dll/cpptoc/auth_callback_cpptoc.h"
+#include "libcef_dll/cpptoc/authenticator_request_callback_cpptoc.h"
 #include "libcef_dll/cpptoc/browser_cpptoc.h"
 #include "libcef_dll/cpptoc/callback_cpptoc.h"
 #include "libcef_dll/cpptoc/frame_cpptoc.h"
@@ -21,6 +22,7 @@
 #include "libcef_dll/cpptoc/select_client_certificate_callback_cpptoc.h"
 #include "libcef_dll/cpptoc/sslinfo_cpptoc.h"
 #include "libcef_dll/cpptoc/x509certificate_cpptoc.h"
+#include "libcef_dll/ctocpp/authenticator_result_handler_ctocpp.h"
 #include "libcef_dll/ctocpp/resource_request_handler_ctocpp.h"
 #include "libcef_dll/shutdown_checker.h"
 
@@ -209,6 +211,63 @@ bool CefRequestHandlerCToCpp::GetAuthCredentials(
 
   // Return type: bool
   return _retval ? true : false;
+}
+
+NO_SANITIZE("cfi-icall")
+bool CefRequestHandlerCToCpp::GetAuthenticatorPinSupported(
+    CefRefPtr<CefBrowser> browser) {
+  shutdown_checker::AssertNotShutdown();
+
+  cef_request_handler_t* _struct = GetStruct();
+  if (CEF_MEMBER_MISSING(_struct, get_authenticator_pin_supported)) {
+    return false;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser.get());
+  if (!browser.get()) {
+    return false;
+  }
+
+  // Execute
+  int _retval = _struct->get_authenticator_pin_supported(
+      _struct, CefBrowserCppToC::Wrap(browser));
+
+  // Return type: bool
+  return _retval ? true : false;
+}
+
+NO_SANITIZE("cfi-icall")
+CefRefPtr<CefAuthenticatorResultHandler>
+CefRequestHandlerCToCpp::GetAuthenticatorPin(
+    CefRefPtr<CefBrowser> browser,
+    const CefCollectPinOptions& options,
+    CefRefPtr<CefAuthenticatorRequestCallback> callback) {
+  shutdown_checker::AssertNotShutdown();
+
+  cef_request_handler_t* _struct = GetStruct();
+  if (CEF_MEMBER_MISSING(_struct, get_authenticator_pin)) {
+    return nullptr;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser.get());
+  if (!browser.get()) {
+    return nullptr;
+  }
+  // Unverified params: callback
+
+  // Execute
+  cef_authenticator_result_handler_t* _retval = _struct->get_authenticator_pin(
+      _struct, CefBrowserCppToC::Wrap(browser), &options,
+      CefAuthenticatorRequestCallbackCppToC::Wrap(callback));
+
+  // Return type: refptr_same
+  return CefAuthenticatorResultHandlerCToCpp::Wrap(_retval);
 }
 
 NO_SANITIZE("cfi-icall")

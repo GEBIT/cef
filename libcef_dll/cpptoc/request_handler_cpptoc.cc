@@ -9,12 +9,14 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=c487cecbbd674cf04f14e4b3e0f018145f238373$
+// $hash=674b430e27fe9c1c52441ba53aa465b236cc3a5c$
 //
 
 #include "libcef_dll/cpptoc/request_handler_cpptoc.h"
+#include "libcef_dll/cpptoc/authenticator_result_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/resource_request_handler_cpptoc.h"
 #include "libcef_dll/ctocpp/auth_callback_ctocpp.h"
+#include "libcef_dll/ctocpp/authenticator_request_callback_ctocpp.h"
 #include "libcef_dll/ctocpp/browser_ctocpp.h"
 #include "libcef_dll/ctocpp/callback_ctocpp.h"
 #include "libcef_dll/ctocpp/frame_ctocpp.h"
@@ -220,6 +222,71 @@ request_handler_get_auth_credentials(struct _cef_request_handler_t* self,
   return _retval;
 }
 
+int CEF_CALLBACK request_handler_get_authenticator_pin_supported(
+    struct _cef_request_handler_t* self,
+    cef_browser_t* browser) {
+  shutdown_checker::AssertNotShutdown();
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self) {
+    return 0;
+  }
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser);
+  if (!browser) {
+    return 0;
+  }
+
+  // Execute
+  bool _retval =
+      CefRequestHandlerCppToC::Get(self)->GetAuthenticatorPinSupported(
+          CefBrowserCToCpp::Wrap(browser));
+
+  // Return type: bool
+  return _retval;
+}
+
+cef_authenticator_result_handler_t* CEF_CALLBACK
+request_handler_get_authenticator_pin(
+    struct _cef_request_handler_t* self,
+    cef_browser_t* browser,
+    const cef_collect_pin_options_t* options,
+    cef_authenticator_request_callback_t* callback) {
+  shutdown_checker::AssertNotShutdown();
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self) {
+    return NULL;
+  }
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser);
+  if (!browser) {
+    return NULL;
+  }
+  // Verify param: options; type: simple_byref_const
+  DCHECK(options);
+  if (!options) {
+    return NULL;
+  }
+  // Unverified params: callback
+
+  // Translate param: options; type: simple_byref_const
+  CefCollectPinOptions optionsVal = options ? *options : CefCollectPinOptions();
+
+  // Execute
+  CefRefPtr<CefAuthenticatorResultHandler> _retval =
+      CefRequestHandlerCppToC::Get(self)->GetAuthenticatorPin(
+          CefBrowserCToCpp::Wrap(browser), optionsVal,
+          CefAuthenticatorRequestCallbackCToCpp::Wrap(callback));
+
+  // Return type: refptr_same
+  return CefAuthenticatorResultHandlerCppToC::Wrap(_retval);
+}
+
 int CEF_CALLBACK
 request_handler_on_certificate_error(struct _cef_request_handler_t* self,
                                      cef_browser_t* browser,
@@ -400,6 +467,9 @@ CefRequestHandlerCppToC::CefRequestHandlerCppToC() {
   GetStruct()->get_resource_request_handler =
       request_handler_get_resource_request_handler;
   GetStruct()->get_auth_credentials = request_handler_get_auth_credentials;
+  GetStruct()->get_authenticator_pin_supported =
+      request_handler_get_authenticator_pin_supported;
+  GetStruct()->get_authenticator_pin = request_handler_get_authenticator_pin;
   GetStruct()->on_certificate_error = request_handler_on_certificate_error;
   GetStruct()->on_select_client_certificate =
       request_handler_on_select_client_certificate;
