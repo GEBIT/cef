@@ -400,6 +400,9 @@ _simpletypes = {
     'CefBoxLayoutSettings': [
         'cef_box_layout_settings_t', 'CefBoxLayoutSettings()'
     ],
+    'CefCollectPinOptions': [
+        'cef_collect_pin_options_t', 'CefCollectPinOptions()'
+    ],
     'CefCompositionUnderline': [
         'cef_composition_underline_t', 'CefCompositionUnderline()'
     ],
