@@ -61,6 +61,11 @@ class CefRequestHandlerCToCpp
                           const CefString& realm,
                           const CefString& scheme,
                           CefRefPtr<CefAuthCallback> callback) override;
+  bool GetAuthenticatorPinSupported(CefRefPtr<CefBrowser> browser) override;
+  CefRefPtr<CefAuthenticatorResultHandler> GetAuthenticatorPin(
+      CefRefPtr<CefBrowser> browser,
+      const CefCollectPinOptions& options,
+      CefRefPtr<CefAuthenticatorRequestCallback> callback) override;
   bool OnCertificateError(CefRefPtr<CefBrowser> browser,
                           cef_errorcode_t cert_error,
                           const CefString& request_url,
