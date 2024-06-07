@@ -28,6 +28,10 @@
 #include "extensions/common/mojom/view_type.mojom-forward.h"
 #endif
 
+#if defined(USE_AURA)
+#include "ui/views/widget/widget.h"
+#endif  // defined(USE_AURA)
+
 class CefAudioCapturer;
 class CefBrowserInfo;
 class SiteInstance;
@@ -144,6 +148,15 @@ class AlloyBrowserHostImpl : public CefBrowserHostBase,
   void WindowDestroyed() override;
 
   bool WillBeDestroyed() const override;
+
+  // Rendering block implementation
+  void SetRenderingBlocked(bool blocked) override;
+#if defined(USE_AURA)
+  void SetRenderingBlockedOnAuraWindowCompositor(bool blocked);
+#endif  // defined(USE_AURA)
+#if defined(OS_MACOSX)
+  void SetRenderingBlockedOnMacWindowCompositor(bool blocked);
+#endif  // defined(OS_MACOSX)
 
   // Destroy the browser members. This method should only be called after the
   // native browser window is not longer processing messages.

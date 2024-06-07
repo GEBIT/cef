@@ -1181,6 +1181,8 @@ source_set("libcef_static") {
       "libcef/browser/views/native_widget_mac.mm",
       "libcef/browser/views/ns_window.h",
       "libcef/browser/views/ns_window.mm",
+      "libcef/browser/ui_compositor_access_mac.h",
+      "libcef/browser/ui_compositor_access_mac.mm",
       "libcef/browser/views/view_util_mac.mm",
       "libcef/common/util_mac.h",
       "libcef/common/util_mac.mm",
