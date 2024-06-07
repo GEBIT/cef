@@ -41,6 +41,8 @@
 #pragma once
 
 #include "include/capi/cef_auth_callback_capi.h"
+#include "include/capi/cef_authenticator_request_callback_capi.h"
+#include "include/capi/cef_authenticator_result_handler_capi.h"
 #include "include/capi/cef_base_capi.h"
 #include "include/capi/cef_browser_capi.h"
 #include "include/capi/cef_callback_capi.h"
@@ -176,6 +178,36 @@ typedef struct _cef_request_handler_t {
       const cef_string_t* realm,
       const cef_string_t* scheme,
       struct _cef_auth_callback_t* callback);
+
+  ///
+  /// Called on the UI thread when the browser needs Webauthn PIN input from the
+  /// user. This is a two-step process: first, an invocation of
+  /// GetAuthenticatorPinSupported is performed to evaluate whether PIN entry is
+  /// even supported by the embedding application. If true (1),
+  /// GetAuthenticatorPin is invoked in order to retrieve the actual PIN.
+  ///
+  int(CEF_CALLBACK* get_authenticator_pin_supported)(
+      struct _cef_request_handler_t* self,
+      struct _cef_browser_t* browser);
+
+  ///
+  /// Called on the UI thread when the browser needs Webauthn PIN input from the
+  /// user. This is a two-step process: first, an invocation of
+  /// GetAuthenticatorPinSupported is performed to evaluate whether PIN entry is
+  /// even supported by the embedding application. If PIN input was signaled to
+  /// be supported, a second call to GetAuthenticatorPin will be made, supplying
+  /// options, the callback and expecting that cont() or cancel() is eventually
+  /// invoked. If you return a cef_authenticator_result_handler_t in that second
+  /// call, it will be used by CEF to signal the result of the authentication
+  /// procedure back to the embedding application (important for example to
+  /// signal a failure due to timeout).
+  ///
+  struct _cef_authenticator_result_handler_t*(
+      CEF_CALLBACK* get_authenticator_pin)(
+      struct _cef_request_handler_t* self,
+      struct _cef_browser_t* browser,
+      const cef_collect_pin_options_t* options,
+      struct _cef_authenticator_request_callback_t* callback);
 
   ///
   /// Called on the UI thread to handle requests for URLs with an invalid SSL

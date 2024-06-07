@@ -3849,6 +3849,82 @@ typedef enum {
   CEF_COLOR_VARIANT_EXPRESSIVE,
 } cef_color_variant_t;
 
+///
+/// The reason we are prompting for a new PIN. Should be kept in sync
+/// with Chromium's device::pin::PINEntryReason type.
+///
+typedef enum {
+  /// Indicates a new PIN is being set.
+  CEF_PIN_ENTRY_REASON_SET,
+
+  /// The existing PIN must be changed before using this authenticator.
+  CEF_PIN_ENTRY_REASON_CHANGE,
+
+  /// The existing PIN is being collected to prove user verification.
+  CEF_PIN_ENTRY_REASON_CHALLENGE,
+} cef_pin_entry_reason_t;
+
+///
+/// The errors that may prompt asking for a PIN. Should be kept in sync
+/// with Chromium's device::pin::PINEntryError type.
+///
+typedef enum {
+  /// No error has occurred.
+  CEF_PIN_ENTRY_ERROR_NO_ERROR,
+
+  /// Internal UV is locked, so we are falling back to PIN.
+  CEF_PIN_ENTRY_ERROR_INTERNAL_UV_LOCKED,
+
+  /// The PIN the user entered does not match the authenticator PIN.
+  CEF_PIN_ENTRY_ERROR_WRONG_PIN,
+
+  /// The new PIN the user entered is too short.
+  CEF_PIN_ENTRY_ERROR_TOO_SHORT,
+
+  /// The new PIN the user entered contains invalid characters.
+  CEF_PIN_ENTRY_ERROR_INVALID_CHARACTERS,
+
+  /// The new PIN the user entered is the same as the currently set PIN.
+  CEF_PIN_ENTRY_ERROR_SAME_AS_CURRENT_PIN,
+} cef_pin_entry_error_t;
+
+typedef struct _cef_collect_pin_options_t {
+  /// Why this PIN is being collected.
+  cef_pin_entry_reason_t reason;
+
+  /// The error for which we are prompting for a PIN.
+  cef_pin_entry_error_t error;
+
+  /// The minimum PIN length the authenticator will accept for the PIN.
+  uint32_t min_pin_length;
+
+  // The number of attempts remaining before a hard lock. Should be ignored
+  // unless |reason| is CEF_PIN_ENTRY_REASON_CHALLENGE.
+  int attempts = 0;
+} cef_collect_pin_options_t;
+
+typedef enum {
+  CEF_AUTHENTICATOR_FAILURE_REASON_TIMEOUT,
+  CEF_AUTHENTICATOR_FAILURE_REASON_KEY_NOT_REGISTERED,
+  CEF_AUTHENTICATOR_FAILURE_REASON_KEY_ALREADY_REGISTERED,
+  CEF_AUTHENTICATOR_FAILURE_REASON_SOFT_PIN_BLOCK,
+  CEF_AUTHENTICATOR_FAILURE_REASON_HARD_PIN_BLOCK,
+  CEF_AUTHENTICATOR_FAILURE_REASON_AUTHENTICATOR_REMOVED_DURING_PIN_ENTRY,
+  CEF_AUTHENTICATOR_FAILURE_REASON_AUTHENTICATOR_MISSING_RESIDENT_KEYS,
+  CEF_AUTHENTICATOR_FAILURE_REASON_AUTHENTICATOR_MISSING_USER_VERIFICATION,
+  CEF_AUTHENTICATOR_FAILURE_REASON_AUTHENTICATOR_MISSING_LARGE_BLOB,
+  CEF_AUTHENTICATOR_FAILURE_REASON_NO_COMMON_ALGORITHMS,
+  // kStorageFull indicates that a resident credential could not be created
+  // because the authenticator has insufficient storage.
+  CEF_AUTHENTICATOR_FAILURE_REASON_STORAGE_FULL,
+  CEF_AUTHENTICATOR_FAILURE_REASON_USER_CONSENT_DENIED,
+  // kWinUserCancelled means that the user clicked "Cancel" in the native
+  // Windows UI.
+  CEF_AUTHENTICATOR_FAILURE_REASON_WIN_USER_CANCELLED,
+  CEF_AUTHENTICATOR_FAILURE_REASON_HYBRID_TRANSPORT_ERROR,
+  CEF_AUTHENTICATOR_FAILURE_REASON_NO_PASSKEYS,
+} cef_authenticator_failure_reason_t;
+
 #ifdef __cplusplus
 }
 #endif

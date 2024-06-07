@@ -465,6 +465,8 @@ source_set("libcef_static") {
     "libcef/browser/alloy/alloy_browser_host_impl.h",
     "libcef/browser/alloy/browser_platform_delegate_alloy.cc",
     "libcef/browser/alloy/browser_platform_delegate_alloy.h",
+    "libcef/browser/alloy/dialogs/alloy_authenticator_request_client_delegate.cc",
+    "libcef/browser/alloy/dialogs/alloy_authenticator_request_client_delegate.h",
     "libcef/browser/alloy/dialogs/alloy_constrained_window_views_client.cc",
     "libcef/browser/alloy/dialogs/alloy_constrained_window_views_client.h",
     "libcef/browser/alloy/dialogs/alloy_web_contents_dialog_helper.cc",
