@@ -1,0 +1,18 @@
+diff --git third_party/sentencepiece/BUILD.gn third_party/sentencepiece/BUILD.gn
+index 6a2d71b5c13d6..be90073664878 100644
+--- third_party/sentencepiece/BUILD.gn
++++ third_party/sentencepiece/BUILD.gn
+@@ -17,6 +17,13 @@ config("sentencepiece_config") {
+     "DARTS_DISABLE_EXCEPTIONS=1",
+     "SENTENCEPIECE_DISABLE_EXCEPTIONS=1",
+   ]
++
++  if (is_linux) {
++    defines += [
++      "SPM_NO_THREADLOCAL=1",
++      "GOOGLE_PROTOBUF_NO_THREADLOCAL=1"
++    ]
++  }
+ }
+ 
+ config("sentencepiece_flags") {
