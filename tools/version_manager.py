@@ -318,6 +318,9 @@ def exec_check(api_versions_file,
   write_versions = False
   write_untracked = False
 
+  # We patch CEF API headers and thus need to recompute the hashes.
+  force_update = True
+
   for version in versions:
     untracked = version in UNTRACKED_VERSIONS
     if untracked:
