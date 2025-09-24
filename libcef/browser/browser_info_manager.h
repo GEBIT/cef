@@ -125,6 +125,10 @@ class CefBrowserInfoManager : public content::RenderProcessHostObserver {
   // Called from CefContext::FinishShutdownOnUIThread() to destroy all browsers.
   void DestroyAllBrowsers();
 
+  // Called from CefBrowserInfo::MaybeCreateFrame when a frame is created.
+  void OnFrameCreated(const content::GlobalRenderFrameHostToken& global_token,
+                      scoped_refptr<CefBrowserInfo> browser_info);
+
   // Returns the CefBrowserInfo matching the specified ID/token or nullptr if no
   // match is found. It is allowed to add new callers of this method but
   // consider using CefBrowserHostBase::GetBrowserForGlobalId/Token() instead.
