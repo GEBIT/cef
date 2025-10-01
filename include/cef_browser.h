@@ -707,11 +707,30 @@ class CefBrowserHost : public virtual CefBaseRefCounted {
   virtual void WasHidden(bool hidden) = 0;
 
   ///
+  /// Allows to disable and re-enable the content rendering pipeline.
+  ///
+  /*--cef()--*/
+  virtual void SetRenderingBlocked(bool blocked) = 0;
+
+  ///
   /// Notify the browser that screen information has changed. Updated
   /// information will be sent to the renderer process to configure screen size
   /// and position values used by CSS and JavaScript (window.deviceScaleFactor,
   /// window.screenX/Y, window.outerWidth/Height, etc.). For background see
   /// https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage.md#markdown-header-coordinate-systems
+  ///
+  /// This method is used with (a) windowless rendering and (b) windowed
+  /// rendering with external (client-provided) root window.
+  ///
+  /// With windowless rendering the browser will call
+  /// CefRenderHandler::GetScreenInfo, CefRenderHandler::GetRootScreenRect and
+  /// CefRenderHandler::GetViewRect. This simulates moving or resizing the root
+  /// window in the current display, moving the root window from one display to
+  /// another, or changing the properties of the current display.
+  ///
+  /// With windowed rendering the browser will call
+  /// CefDisplayHandler::GetRootWindowScreenRect and use the associated
+  /// display properties.
   ///
   /// This method is used with (a) windowless rendering and (b) windowed
   /// rendering with external (client-provided) root window.
