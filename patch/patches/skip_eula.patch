@@ -1,0 +1,13 @@
+diff --git chrome/browser/first_run/first_run.cc chrome/browser/first_run/first_run.cc
+index 6e41cc0f1b1a3..b9c55f5c40996 100644
+--- chrome/browser/first_run/first_run.cc
++++ chrome/browser/first_run/first_run.cc
+@@ -470,7 +470,7 @@ ProcessInitialPreferencesResult ProcessInitialPreferences(
+ 
+ #if BUILDFLAG(IS_LINUX)
+ bool ShowEulaDialog() {
+-  return internal::ShowEulaDialog();
++  return true;
+ }
+ #endif
+ 
